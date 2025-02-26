@@ -26,24 +26,17 @@ const socialLinks = [
 
 export default function SocialLinks() {
   return (
-    <div className="flex flex-wrap gap-2 justify-center">
+    <div className="flex justify-center gap-6">
       {socialLinks.map((link) => (
         <a
           key={link.name}
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="no-underline"
+          className="text-muted-foreground hover:text-primary transition-colors"
         >
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-10 h-10 rounded-full"
-            title={link.name}
-          >
-            <link.icon className="w-4 h-4" />
-            <span className="sr-only">{link.name}</span>
-          </Button>
+          <link.icon className="w-5 h-5" />
+          <span className="sr-only">{link.name}</span>
         </a>
       ))}
     </div>

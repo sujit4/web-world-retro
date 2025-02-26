@@ -1,15 +1,14 @@
-import { Card } from "@/components/ui/card";
 import { HardHat } from "lucide-react";
 
 export default function UnderConstruction() {
   return (
-    <Card className="p-8 text-center space-y-4 bg-background/50 shadow-sm">
+    <div className="text-center space-y-4 py-8">
       <div className="flex justify-center">
-        <HardHat className="w-8 h-8 text-muted-foreground animate-pulse" />
+        <HardHat className="w-6 h-6 text-muted-foreground/50 animate-pulse" />
       </div>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-xs text-muted-foreground/70">
         Coming soon
       </p>
-    </Card>
+    </div>
   );
 }
