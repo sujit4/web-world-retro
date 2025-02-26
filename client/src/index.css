@@ -30,18 +30,18 @@
 
   @keyframes select-item {
     0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    50% { transform: scale(1.2); filter: brightness(1.5); }
     100% { transform: scale(1); }
   }
 
   .social-link {
     position: relative;
-    transition: all 0.2s step-end;
+    transition: all 0.15s step-end;
   }
 
   .social-link:hover {
-    transform: translateY(-2px);
-    animation: select-item 0.2s step-end;
+    transform: translateY(-4px);
+    animation: select-item 0.3s step-end;
   }
 
   .social-link::before {
@@ -50,12 +50,17 @@
     inset: -4px;
     background: transparent;
     border: 2px solid transparent;
-    transition: all 0.2s step-end;
+    transition: all 0.15s step-end;
   }
 
   .social-link:hover::before {
     border-color: hsl(var(--primary));
-    background: hsl(var(--primary) / 0.1);
+    background: hsl(var(--primary) / 0.2);
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.5);
+  }
+
+  .social-link:active {
+    transform: scale(0.95);
   }
 
   .pixel-border {

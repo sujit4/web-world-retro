@@ -10,11 +10,11 @@ export default function Home() {
         {/* Minimal Introduction */}
         <section className="text-center space-y-6">
           <h1 className="text-xl tracking-wider text-foreground/90">
-            <span className="text-primary">Your Name</span>
+            <span className="text-primary">SUJIT KONAPUR</span>
             <span className="retro-blink">_</span>
           </h1>
           <p className="text-xs text-muted-foreground">
-            DEVELOPER
+            SECURITY ENGINEER
           </p>
         </section>
 
@@ -25,7 +25,15 @@ export default function Home() {
 
         {/* Minimal Blog Link */}
         <div className="text-center">
-          <Button variant="ghost" asChild className="text-xs hover:text-primary pixel-border">
+          <Button 
+            variant="ghost" 
+            asChild 
+            className="text-xs hover:text-primary pixel-border"
+            onClick={() => {
+              const audio = new Audio('/sounds/select.wav');
+              audio.play();
+            }}
+          >
             <Link href="/blog" className="inline-flex items-center gap-2">
               BLOG <ArrowRight className="w-3 h-3" />
             </Link>
