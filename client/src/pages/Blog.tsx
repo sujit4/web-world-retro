@@ -7,7 +7,15 @@ export default function Blog() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <main className="w-full max-w-lg mx-auto space-y-12">
-        <Button variant="ghost" asChild className="text-xs hover:text-primary pixel-border">
+        <Button 
+          variant="ghost" 
+          asChild 
+          className="text-xs hover:text-primary pixel-border"
+          onClick={() => {
+            const audio = new Audio('/sounds/select.wav');
+            audio.play();
+          }}
+        >
           <Link href="/" className="inline-flex items-center gap-2">
             <ArrowLeft className="w-3 h-3" /> BACK
           </Link>
