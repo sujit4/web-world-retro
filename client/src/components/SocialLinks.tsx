@@ -33,7 +33,7 @@ export default function SocialLinks() {
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-muted-foreground hover:text-primary transition-colors"
+          className="text-muted-foreground hover:text-primary transition-colors pixel-border p-2"
         >
           <link.icon className="w-5 h-5" />
           <span className="sr-only">{link.name}</span>

@@ -9,15 +9,28 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    background: radial-gradient(
-      circle at center,
+    font-family: 'Press Start 2P', cursive;
+    background: linear-gradient(
+      to bottom,
       hsl(var(--background)) 0%,
-      hsl(var(--background) / 0.98) 50%,
       hsl(var(--background) / 0.95) 100%
     );
+    text-shadow: 2px 2px hsl(var(--foreground) / 0.1);
+    image-rendering: pixelated;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  .retro-blink {
+    animation: blink 1s step-end infinite;
+  }
+
+  .pixel-border {
+    box-shadow: 
+      -3px -3px 0 hsl(var(--primary) / 0.5),
+      3px 3px 0 hsl(var(--primary) / 0.2);
   }
 }
