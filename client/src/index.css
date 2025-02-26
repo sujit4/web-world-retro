@@ -68,4 +68,28 @@
       -3px -3px 0 hsl(var(--primary) / 0.5),
       3px 3px 0 hsl(var(--primary) / 0.2);
   }
+
+  @keyframes scan-line {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  .ease-steps {
+    transition-timing-function: steps(10, end);
+  }
+
+  .scan-line {
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        transparent,
+        hsl(var(--primary) / 0.3),
+        transparent
+      );
+      animation: scan-line 2s linear infinite;
+    }
+  }
 }
