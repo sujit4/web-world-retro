@@ -1,20 +1,15 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { HardHat, Hammer } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { HardHat } from "lucide-react";
 
 export default function UnderConstruction() {
   return (
-    <Card className="border-2 border-dashed">
-      <CardContent className="p-12 text-center space-y-6">
-        <div className="flex justify-center gap-4">
-          <HardHat className="w-12 h-12 text-primary animate-bounce" />
-          <Hammer className="w-12 h-12 text-primary animate-bounce delay-100" />
-        </div>
-        <h2 className="text-2xl font-semibold">Under Construction</h2>
-        <p className="text-muted-foreground max-w-lg mx-auto">
-          The blog section is currently being built. Soon it will be filled with
-          technical articles, tutorials, and personal experiences. Check back soon!
-        </p>
-      </CardContent>
+    <Card className="p-8 text-center space-y-4 bg-background/50 shadow-sm">
+      <div className="flex justify-center">
+        <HardHat className="w-8 h-8 text-muted-foreground animate-pulse" />
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Coming soon
+      </p>
     </Card>
   );
 }
