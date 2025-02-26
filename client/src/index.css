@@ -28,6 +28,36 @@
     animation: blink 1s step-end infinite;
   }
 
+  @keyframes select-item {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .social-link {
+    position: relative;
+    transition: all 0.2s step-end;
+  }
+
+  .social-link:hover {
+    transform: translateY(-2px);
+    animation: select-item 0.2s step-end;
+  }
+
+  .social-link::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: transparent;
+    border: 2px solid transparent;
+    transition: all 0.2s step-end;
+  }
+
+  .social-link:hover::before {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+  }
+
   .pixel-border {
     box-shadow: 
       -3px -3px 0 hsl(var(--primary) / 0.5),
