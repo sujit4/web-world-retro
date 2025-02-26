@@ -12,7 +12,7 @@ export default function Home() {
           <h1 className="text-2xl font-light tracking-wider text-foreground/90">
             <span className="text-primary">Your Name</span>
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground font-light">
             Developer
           </p>
         </section>
@@ -24,7 +24,7 @@ export default function Home() {
 
         {/* Minimal Blog Link */}
         <div className="text-center">
-          <Button variant="ghost" asChild className="text-xs hover:text-primary">
+          <Button variant="ghost" asChild className="text-xs hover:text-primary transition-all duration-300">
             <Link href="/blog" className="inline-flex items-center gap-2">
               Blog <ArrowRight className="w-3 h-3" />
             </Link>
