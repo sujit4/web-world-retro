@@ -1,20 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <!-- 8-bit style shield/lock icon for security theme -->
+  <!-- 8-bit style chicken icon -->
   <style>
     .primary { fill: #5e8dc9; } /* Using a blue tone similar to the primary color */
     .outline { fill: #14171a; } /* Dark outline */
-    .highlight { fill: #8ab9ff; } /* Highlight areas */
+    .highlight { fill: #f5dd90; } /* Yellow highlight for chicken body */
+    .accent { fill: #ff6b6b; } /* Red for comb and wattle */
   </style>
-  
-  <!-- Base shield shape - pixelated outline -->
-  <path class="outline" d="M10,4 h12 v4 h4 v16 h-4 v4 h-12 v-4 h-4 v-16 h4 z" />
-  
-  <!-- Inner shield fill -->
-  <path class="primary" d="M12,6 h8 v2 h2 v14 h-2 v2 h-8 v-2 h-2 v-14 h2 z" />
-  
-  <!-- Lock/keyhole shape -->
-  <path class="outline" d="M14,12 h4 v4 h-4 z M15,16 h2 v4 h-2 z" />
-  
-  <!-- Highlight pixel -->
-  <path class="highlight" d="M14,8 h2 v2 h-2 z" />
+
+  <!-- Pixel Chicken Body -->
+  <path class="outline" d="M8,8 h16 v16 h-16 z" />
+  <path class="highlight" d="M10,10 h12 v12 h-12 z" />
+
+  <!-- Chicken Head/Comb -->
+  <path class="outline" d="M16,6 h4 v2 h-4 z" />
+  <path class="accent" d="M17,7 h2 v1 h-2 z" />
+
+  <!-- Beak -->
+  <path class="outline" d="M20,12 h4 v2 h-4 z" />
+  <path class="primary" d="M21,13 h2 v1 h-2 z" />
+
+  <!-- Eyes -->
+  <path class="outline" d="M18,12 h2 v2 h-2 z" />
+
+  <!-- Feet -->
+  <path class="outline" d="M10,22 h4 v4 h-2 v-2 h-2 z M18,22 h4 v2 h-2 v2 h-2 z" />
+  <path class="accent" d="M11,23 h2 v2 h-1 v-1 h-1 z M19,23 h2 v1 h-1 v1 h-1 z" />
+
+  <!-- Wing -->
+  <path class="outline" d="M6,14 h4 v6 h-4 z" />
+  <path class="primary" d="M7,15 h2 v4 h-2 z" />
 </svg>
