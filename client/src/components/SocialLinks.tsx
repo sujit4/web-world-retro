@@ -4,17 +4,17 @@ const socialLinks = [
   {
     name: "GitHub",
     icon: SiGithub,
-    url: "https://github.com/sujitkonapur",
+    url: "https://github.com/sujit4",
   },
   {
     name: "Twitter",
     icon: SiX,
-    url: "https://twitter.com/sujitkonapur",
+    url: "https://twitter.com/satwork13",
   },
   {
     name: "LinkedIn",
     icon: SiLinkedin,
-    url: "https://linkedin.com/in/sujitkonapur",
+    url: "https://linkedin.com/in/skonapur",
   },
 ];
 

@@ -14,7 +14,7 @@ export default function Home() {
             <span className="retro-blink">_</span>
           </h1>
           <p className="text-xs text-muted-foreground">
-            SECURITY ENGINEER
+            Security Engineer
           </p>
         </section>
 

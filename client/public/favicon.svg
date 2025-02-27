@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- 8-bit style shield/lock icon for security theme -->
+  <style>
+    .primary { fill: #5e8dc9; } /* Using a blue tone similar to the primary color */
+    .outline { fill: #14171a; } /* Dark outline */
+    .highlight { fill: #8ab9ff; } /* Highlight areas */
+  </style>
+  
+  <!-- Base shield shape - pixelated outline -->
+  <path class="outline" d="M10,4 h12 v4 h4 v16 h-4 v4 h-12 v-4 h-4 v-16 h4 z" />
+  
+  <!-- Inner shield fill -->
+  <path class="primary" d="M12,6 h8 v2 h2 v14 h-2 v2 h-8 v-2 h-2 v-14 h2 z" />
+  
+  <!-- Lock/keyhole shape -->
+  <path class="outline" d="M14,12 h4 v4 h-4 z M15,16 h2 v4 h-2 z" />
+  
+  <!-- Highlight pixel -->
+  <path class="highlight" d="M14,8 h2 v2 h-2 z" />
+</svg>
