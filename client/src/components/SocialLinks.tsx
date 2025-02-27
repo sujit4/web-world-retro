@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { SiGithub, SiX, SiLinkedin } from "react-icons/si";
 
 const socialLinks = [
@@ -29,10 +28,6 @@ export default function SocialLinks() {
           target="_blank"
           rel="noopener noreferrer"
           className="social-link text-muted-foreground hover:text-primary p-2"
-          onClick={() => {
-            const audio = new Audio('/sounds/select.wav');
-            audio.play();
-          }}
         >
           <link.icon className="w-5 h-5" />
           <span className="sr-only">{link.name}</span>
