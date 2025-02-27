@@ -59,11 +59,29 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  
+  // Try to start the server, with fallback to another port if 5000 is in use
+  const startServer = (attemptPort: number) => {
+    server.listen({
+      port: attemptPort,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${attemptPort}`);
+    }).on('error', (e: any) => {
+      if (e.code === 'EADDRINUSE') {
+        log(`Port ${attemptPort} is already in use, trying to kill the process...`);
+        
+        // Try to start on a different port if the default is in use
+        const fallbackPort = 3000;
+        log(`Attempting to start on port ${fallbackPort} instead...`);
+        startServer(fallbackPort);
+      } else {
+        log(`Failed to start server: ${e.message}`);
+        throw e;
+      }
+    });
+  };
+  
+  startServer(port);
 })();
