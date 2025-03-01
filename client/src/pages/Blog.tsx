@@ -20,7 +20,7 @@ export default function Blog() {
         <div className="text-center space-y-3">
           <h1 className="text-xl tracking-wider text-foreground/90">BLOG<span className="retro-blink">_</span></h1>
           <p className="text-xs text-muted-foreground">
-            LOADING...
+            UNDER CONSTRUCTION
           </p>
         </div>
 

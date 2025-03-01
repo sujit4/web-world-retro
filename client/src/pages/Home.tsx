@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import SocialLinks from "@/components/SocialLinks";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Lock } from "lucide-react";
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
             <span className="retro-blink">_</span>
           </h1>
           <p className="text-xs text-muted-foreground">
-            Security Engineer
+            Security musings from the trenches.
           </p>
         </section>
 
@@ -34,6 +34,14 @@ export default function Home() {
               BLOG <ArrowRight className="w-3 h-3" />
             </Link>
           </Button>
+        </div>
+        
+        {/* Admin Link - Very subtle */}
+        <div className="text-center mt-16">
+          <Link href="/admin" className="text-[10px] text-muted-foreground/30 hover:text-primary/50 inline-flex items-center gap-1">
+            <Lock className="w-2 h-2" />
+            ADMIN
+          </Link>
         </div>
       </main>
     </div>

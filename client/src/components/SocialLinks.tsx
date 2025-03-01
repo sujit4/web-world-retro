@@ -1,4 +1,5 @@
 import { SiGithub, SiX, SiLinkedin } from "react-icons/si";
+import { MdEmail } from "react-icons/md";
 
 const socialLinks = [
   {
@@ -15,6 +16,11 @@ const socialLinks = [
     name: "LinkedIn",
     icon: SiLinkedin,
     url: "https://linkedin.com/in/skonapur",
+  },
+  {
+    name: "Email",
+    icon: MdEmail,
+    url: "mailto:hello@sujit.dev",
   },
 ];
 

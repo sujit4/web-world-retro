@@ -5,6 +5,7 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  // Passwords are hashed using bcrypt before storage
   password: text("password").notNull(),
 });
 
