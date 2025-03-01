@@ -1,18 +1,13 @@
 {
   "version": 2,
-  "buildCommand": "npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-  "outputDirectory": "dist",
+  "buildCommand": "npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=api",
+  "outputDirectory": "dist/public",
   "installCommand": "npm install",
   "framework": "vite",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.js" }
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "functions": {
-    "index.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   },
