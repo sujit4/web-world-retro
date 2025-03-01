@@ -35,5 +35,10 @@
     "silent": false,
     "autoAlias": true,
     "autoJobCancelation": true
+  },
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs18.x"
+    }
   }
 } 
