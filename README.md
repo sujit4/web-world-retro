@@ -2,6 +2,10 @@
 
 A retro-styled web application with a minimalist design, featuring a personal portfolio/blog structure with a nostalgic aesthetic.
 
+## Live Demo
+
+Visit the live application at: [https://web-world-retro-48ha0cfmn-sujit-konapurs-projects.vercel.app](https://web-world-retro-48ha0cfmn-sujit-konapurs-projects.vercel.app)
+
 ## Features
 
 - Minimalist retro-styled UI
@@ -130,3 +134,19 @@ curl -X POST -H "Content-Type: application/json" -d '{"username":"admin","passwo
 ## Session Management
 
 The application uses express-session with a memory store for session management. In production, it's recommended to use a more robust session store like Redis or a database-backed store 
+
+## Deployment
+
+This project is set up with a CI/CD pipeline for automatic deployments:
+
+1. The code is hosted on GitHub: [https://github.com/sujit4/web-world-retro](https://github.com/sujit4/web-world-retro)
+2. Automatic deployments are configured through Vercel
+3. When changes are pushed to the `main` branch or when a pull request is merged into `main`, the application is automatically deployed to production
+
+### Development Workflow
+
+1. Create a new branch for your feature: `git checkout -b feature/your-feature-name`
+2. Make your changes and commit them: `git commit -m "Add your feature"`
+3. Push your branch to GitHub: `git push origin feature/your-feature-name`
+4. Create a Pull Request on GitHub
+5. Once the PR is reviewed and merged, the changes will be automatically deployed to production 
