@@ -71,6 +71,9 @@ import session from "express-session";
 import MemoryStore from "memorystore";
 var SessionStore = MemoryStore(session);
 async function registerRoutes(app2) {
+  app2.get("/api/health", (_req, res) => {
+    res.status(200).json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+  });
   app2.use(
     session({
       secret: process.env.SESSION_SECRET || "super-secret-key-for-development-only",
@@ -81,13 +84,43 @@ async function registerRoutes(app2) {
         // prune expired entries every 24h
       }),
       cookie: {
-        secure: false,
-        // Set to false for local testing
+        secure: process.env.NODE_ENV === "production",
+        // Use secure cookies in production
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        // Required for cross-site cookies in production
+        httpOnly: true,
+        // Prevent client-side JavaScript from accessing cookies
         maxAge: 24 * 60 * 60 * 1e3
         // 24 hours
       }
     })
   );
+  const authRateLimit = (windowMs, max) => {
+    const ips = /* @__PURE__ */ new Map();
+    return (req, res, next) => {
+      const ip = req.ip || "unknown";
+      const now = Date.now();
+      if (!ips.has(ip)) {
+        ips.set(ip, { count: 1, resetTime: now + windowMs });
+        return next();
+      }
+      const ipData = ips.get(ip);
+      if (now > ipData.resetTime) {
+        ipData.count = 1;
+        ipData.resetTime = now + windowMs;
+        return next();
+      }
+      ipData.count++;
+      if (ipData.count > max) {
+        return res.status(429).json({
+          message: "Too many requests, please try again later",
+          retryAfter: Math.ceil((ipData.resetTime - now) / 1e3)
+        });
+      }
+      next();
+    };
+  };
+  const loginRateLimiter = authRateLimit(15 * 60 * 1e3, 5);
   app2.post("/api/auth/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
@@ -108,7 +141,7 @@ async function registerRoutes(app2) {
       return res.status(500).json({ message: "Internal server error" });
     }
   });
-  app2.post("/api/auth/login", async (req, res) => {
+  app2.post("/api/auth/login", loginRateLimiter, async (req, res) => {
     try {
       const { username, password } = req.body;
       if (!username || !password) {
@@ -125,6 +158,7 @@ async function registerRoutes(app2) {
       const { password: _, ...userWithoutPassword } = user;
       return res.status(200).json(userWithoutPassword);
     } catch (error) {
+      console.error("Login error:", error);
       return res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -141,6 +175,7 @@ async function registerRoutes(app2) {
     if (req.session) {
       req.session.destroy((err) => {
         if (err) {
+          console.error("Logout error:", err);
           return res.status(500).json({ message: "Failed to logout" });
         }
         res.clearCookie("connect.sid");
@@ -264,7 +299,19 @@ function serveStatic(app2) {
 }
 
 // server/index.ts
+import helmet from "helmet";
+import cors from "cors";
 var app = express2();
+app.use(helmet({
+  contentSecurityPolicy: process.env.NODE_ENV === "production" ? void 0 : false
+}));
+app.use(cors({
+  origin: process.env.VERCEL_URL || process.env.CORS_ORIGIN || "http://localhost:3000",
+  credentials: true,
+  // Important for cookies/auth
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: false }));
 app.use((req, res, next) => {
@@ -280,7 +327,7 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path3.startsWith("/api")) {
       let logLine = `${req.method} ${path3} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
+      if (capturedJsonResponse && process.env.NODE_ENV !== "production") {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
       if (logLine.length > 80) {
@@ -296,15 +343,22 @@ app.use((req, res, next) => {
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-    res.status(status).json({ message });
-    throw err;
+    console.error(`Server error: ${err.message}`, err.stack);
+    if (process.env.NODE_ENV === "production") {
+      return res.status(status).json({ message });
+    }
+    res.status(status).json({
+      message,
+      error: err.message,
+      stack: err.stack
+    });
   });
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
-  const port = 3e3;
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3e3;
   server.listen({
     port,
     host: "0.0.0.0",
