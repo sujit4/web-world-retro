@@ -81,7 +81,8 @@ async function registerRoutes(app2) {
         // prune expired entries every 24h
       }),
       cookie: {
-        secure: process.env.NODE_ENV === "production",
+        secure: false,
+        // Set to false for local testing
         maxAge: 24 * 60 * 60 * 1e3
         // 24 hours
       }
@@ -250,7 +251,7 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path2.resolve(__dirname2, "public");
+  const distPath = path2.resolve(__dirname2, "..", "dist", "public");
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`

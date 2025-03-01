@@ -2,9 +2,29 @@
 
 A retro-styled web application with a minimalist design, featuring a personal portfolio/blog structure with a nostalgic aesthetic.
 
-## Deployment Note
+## Deployment
 
-This application is configured for GitHub integration with automatic deployments. However, due to the specific architecture of the application (Express.js backend with Vite frontend), additional configuration may be needed for cloud deployment platforms.
+This application is configured for deployment on Vercel with GitHub integration for automatic deployments. The application uses a serverless architecture with Express.js backend and Vite frontend.
+
+### Production Deployment
+
+The application is deployed on Vercel. The production environment uses:
+
+- Secure session cookies with proper CORS configuration
+- Rate limiting for authentication endpoints
+- Security headers via Helmet and Vercel.json configuration
+- Memory-based session storage (can be upgraded to PostgreSQL-based storage)
+- Environment variables for configuration
+
+### Environment Variables
+
+For production deployment, the following environment variables should be set in your Vercel project settings:
+
+- `NODE_ENV`: Set to "production"
+- `SESSION_SECRET`: A strong random string for signing session cookies
+- `DATABASE_URL`: Your production database connection string
+- `CORS_ORIGIN`: Your frontend domain (if different from the API domain)
+- `PORT`: (Optional) The port to run the server on (defaults to 3000)
 
 For local development and testing, please follow the instructions below.
 
@@ -18,6 +38,7 @@ For local development and testing, please follow the instructions below.
 - Session management with express-session
 - Protected admin area with authentication
 - Subtle UI elements with retro aesthetics
+- Production-ready security features
 
 ## Tech Stack
 
@@ -27,6 +48,8 @@ For local development and testing, please follow the instructions below.
 - **Database**: PostgreSQL (configured with Drizzle ORM)
 - **Authentication**: bcrypt for password hashing, express-session for session management
 - **State Management**: React Query
+- **Security**: Helmet, CORS, rate limiting
+- **Deployment**: Vercel
 
 ## Prerequisites
 

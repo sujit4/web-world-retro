@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema } from "@shared/schema";
@@ -18,6 +18,11 @@ declare module 'express-session' {
 const SessionStore = MemoryStore(session);
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add a health check endpoint
+  app.get('/api/health', (_req: Request, res: Response) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
   // Set up session middleware
   app.use(
     session({
@@ -28,11 +33,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         checkPeriod: 86400000 // prune expired entries every 24h
       }),
       cookie: {
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax', // Required for cross-site cookies in production
+        httpOnly: true, // Prevent client-side JavaScript from accessing cookies
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
       }
     })
   );
+
+  // Rate limiting for auth endpoints
+  const authRateLimit = (windowMs: number, max: number) => {
+    const ips = new Map<string, { count: number, resetTime: number }>();
+    
+    return (req: Request, res: Response, next: NextFunction) => {
+      const ip = req.ip || 'unknown';
+      const now = Date.now();
+      
+      if (!ips.has(ip)) {
+        ips.set(ip, { count: 1, resetTime: now + windowMs });
+        return next();
+      }
+      
+      const ipData = ips.get(ip)!;
+      
+      // Reset counter if time window has passed
+      if (now > ipData.resetTime) {
+        ipData.count = 1;
+        ipData.resetTime = now + windowMs;
+        return next();
+      }
+      
+      // Increment counter and check limit
+      ipData.count++;
+      if (ipData.count > max) {
+        return res.status(429).json({ 
+          message: 'Too many requests, please try again later',
+          retryAfter: Math.ceil((ipData.resetTime - now) / 1000)
+        });
+      }
+      
+      next();
+    };
+  };
+
+  // Apply rate limiting to auth endpoints (15 minutes window, 5 max requests)
+  const loginRateLimiter = authRateLimit(15 * 60 * 1000, 5);
 
   // Authentication routes
   app.post('/api/auth/register', async (req: Request, res: Response) => {
@@ -63,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/auth/login', async (req: Request, res: Response) => {
+  app.post('/api/auth/login', loginRateLimiter, async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
       
@@ -88,6 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password: _, ...userWithoutPassword } = user;
       return res.status(200).json(userWithoutPassword);
     } catch (error) {
+      console.error('Login error:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -108,6 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (req.session) {
       req.session.destroy((err) => {
         if (err) {
+          console.error('Logout error:', err);
           return res.status(500).json({ message: 'Failed to logout' });
         }
         res.clearCookie('connect.sid');
