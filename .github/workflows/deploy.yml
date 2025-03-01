@@ -27,10 +27,12 @@ jobs:
         run: npm ci
         
       - name: Run tests
-        run: npm test || true
+        run: npm test || echo "No tests found or tests failed, continuing deployment"
         
       - name: Build
         run: npm run build
+        env:
+          NODE_ENV: production
         
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
@@ -38,4 +40,16 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod' 
+          vercel-args: '--prod'
+          working-directory: ./
+        env:
+          NODE_ENV: production
+          
+      - name: Deployment Status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Deployment to production successful!"
+          else
+            echo "❌ Deployment to production failed!"
+          fi 

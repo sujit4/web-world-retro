@@ -8,6 +8,7 @@ vite.config.ts.*
 # Environment variables
 .env
 .env.*
+!.env.example
 .env.local
 .env.development
 .env.test
@@ -31,3 +32,4 @@ yarn-error.log*
 
 # Build files
 .cache
+.vercel

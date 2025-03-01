@@ -2,9 +2,11 @@
 
 A retro-styled web application with a minimalist design, featuring a personal portfolio/blog structure with a nostalgic aesthetic.
 
-## Live Demo
+## Deployment Note
 
-Visit the live application at: [https://web-world-retro-48ha0cfmn-sujit-konapurs-projects.vercel.app](https://web-world-retro-48ha0cfmn-sujit-konapurs-projects.vercel.app)
+This application is configured for GitHub integration with automatic deployments. However, due to the specific architecture of the application (Express.js backend with Vite frontend), additional configuration may be needed for cloud deployment platforms.
+
+For local development and testing, please follow the instructions below.
 
 ## Features
 
@@ -139,9 +141,26 @@ The application uses express-session with a memory store for session management.
 
 This project is set up with a CI/CD pipeline for automatic deployments:
 
-1. The code is hosted on GitHub: [https://github.com/sujit4/web-world-retro](https://github.com/sujit4/web-world-retro)
-2. Automatic deployments are configured through Vercel
+1. The code is hosted on GitHub
+2. Automatic deployments are configured through GitHub Actions and Vercel
 3. When changes are pushed to the `main` branch or when a pull request is merged into `main`, the application is automatically deployed to production
+
+### Deployment Configuration
+
+The deployment is configured using:
+- GitHub Actions workflow (`.github/workflows/deploy.yml`)
+- Vercel configuration (`vercel.json`)
+
+### Required Secrets for GitHub Actions
+
+The following secrets need to be set in your GitHub repository settings:
+- `VERCEL_TOKEN`: Your Vercel API token
+- `VERCEL_ORG_ID`: Your Vercel organization ID
+- `VERCEL_PROJECT_ID`: Your Vercel project ID
+
+### Environment Variables
+
+Create a `.env` file based on the `.env.example` template for local development. For production, set these environment variables in your Vercel project settings.
 
 ### Development Workflow
 

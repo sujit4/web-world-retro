@@ -6,5 +6,9 @@
   "framework": "vite",
   "env": {
     "NODE_ENV": "production"
+  },
+  "github": {
+    "enabled": true,
+    "silent": false
   }
 } 
