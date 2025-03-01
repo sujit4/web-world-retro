@@ -169,3 +169,6 @@ Create a `.env` file based on the `.env.example` template for local development.
 3. Push your branch to GitHub: `git push origin feature/your-feature-name`
 4. Create a Pull Request on GitHub
 5. Once the PR is reviewed and merged, the changes will be automatically deployed to production 
+
+# Deployment Status
+[![Deploy to Production](https://github.com/sujit4/web-world-retro/actions/workflows/deploy.yml/badge.svg)](https://github.com/sujit4/web-world-retro/actions/workflows/deploy.yml) 
