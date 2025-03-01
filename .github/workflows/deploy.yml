@@ -32,7 +32,9 @@ jobs:
         run: npm test || echo "No tests found or tests failed, continuing deployment"
         
       - name: Build
-        run: npm run build
+        run: |
+          npx vite build
+          npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
         env:
           NODE_ENV: production
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
