@@ -6,12 +6,16 @@
       "src": "package.json",
       "use": "@vercel/node",
       "config": {
-        "distDir": "dist/public"
+        "distDir": "dist/public",
+        "includeFiles": ["api/**"]
       }
     }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.js" },
     { "src": "/(.*)", "dest": "/dist/public/index.html" }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 } 
