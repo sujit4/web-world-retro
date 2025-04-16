@@ -41,19 +41,19 @@ async function build() {
 
   // Check if TypeScript compiles
   log('Checking TypeScript compilation...', colors.yellow);
-  if (!execute('npx tsc --noEmit')) {
+  if (!execute('./node_modules/.bin/tsc --noEmit')) {
     process.exit(1);
   }
 
   // Build the frontend
   log('Building frontend with Vite...', colors.yellow);
-  if (!execute('npx vite build')) {
+  if (!execute('./node_modules/.bin/vite build')) {
     process.exit(1);
   }
 
   // Build the backend
   log('Building backend with esbuild...', colors.yellow);
-  if (!execute('npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=api')) {
+  if (!execute('./node_modules/.bin/esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=api')) {
     process.exit(1);
   }
 
