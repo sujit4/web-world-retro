@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "tsx server/index.ts",
     "prebuild": "npm install",
-    "build": "node build.js",
+    "build": "./node_modules/.bin/vite build",
     "start": "NODE_ENV=production node api/index.js",
-    "check": "tsc",
+    "check": "tsc --noEmit",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
