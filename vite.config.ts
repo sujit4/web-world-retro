@@ -6,9 +6,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(__dirname, "./client/src"),
     },
   },
+  root: path.resolve(__dirname, "./client"),
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
