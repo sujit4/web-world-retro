@@ -83,8 +83,6 @@
     "@vitejs/plugin-react": "^4.3.2"
   },
   "devDependencies": {
-    "@replit/vite-plugin-cartographer": "^0.0.4",
-    "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",
     "@types/bcrypt": "^5.0.2",
     "@types/connect-pg-simple": "^7.0.3",
