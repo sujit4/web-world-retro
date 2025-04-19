@@ -8,7 +8,7 @@ type Theme = {
   radius: number;
 };
 
-const ThemeContext = createContext<Theme>(theme);
+const ThemeContext = createContext<Theme>(theme as Theme);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -26,7 +26,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ThemeContext.Provider value={theme}>
+    <ThemeContext.Provider value={theme as Theme}>
       {children}
     </ThemeContext.Provider>
   );
