@@ -1,132 +1,5 @@
-var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __esm = (fn, res) => function __init() {
-  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
-};
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-
-// vite.config.ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
-import { fileURLToPath } from "url";
-var __filename, __dirname, vite_config_default;
-var init_vite_config = __esm({
-  "vite.config.ts"() {
-    "use strict";
-    __filename = fileURLToPath(import.meta.url);
-    __dirname = path.dirname(__filename);
-    vite_config_default = defineConfig({
-      plugins: [react()],
-      resolve: {
-        alias: {
-          "@": path.resolve(__dirname, "./client/src")
-        }
-      },
-      root: path.resolve(__dirname, "./client"),
-      server: {
-        port: 3e3
-      },
-      build: {
-        outDir: path.resolve(__dirname, "dist"),
-        emptyOutDir: true
-      }
-    });
-  }
-});
-
-// server/vite.ts
-var vite_exports = {};
-__export(vite_exports, {
-  log: () => log,
-  serveStatic: () => serveStatic,
-  setupVite: () => setupVite
-});
+// server/production.ts
 import express from "express";
-import fs from "fs";
-import path2, { dirname } from "path";
-import { fileURLToPath as fileURLToPath2 } from "url";
-import { createServer as createViteServer, createLogger } from "vite";
-import { nanoid } from "nanoid";
-function log(message, source = "express") {
-  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true
-  });
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
-async function setupVite(app2, server) {
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true
-  };
-  const vite = await createViteServer({
-    ...vite_config_default,
-    configFile: false,
-    customLogger: {
-      ...viteLogger,
-      error: (msg, options) => {
-        viteLogger.error(msg, options);
-        process.exit(1);
-      }
-    },
-    server: serverOptions,
-    appType: "custom"
-  });
-  app2.use(vite.middlewares);
-  app2.use("*", async (req, res, next) => {
-    const url = req.originalUrl;
-    try {
-      const clientTemplate = path2.resolve(
-        __dirname2,
-        "..",
-        "client",
-        "index.html"
-      );
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`
-      );
-      const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
-    } catch (e) {
-      vite.ssrFixStacktrace(e);
-      next(e);
-    }
-  });
-}
-function serveStatic(app2) {
-  const distPath = path2.resolve(__dirname2, "..", "dist", "public");
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
-    );
-  }
-  app2.use(express.static(distPath));
-  app2.use("*", (_req, res) => {
-    res.sendFile(path2.resolve(distPath, "index.html"));
-  });
-}
-var __filename2, __dirname2, viteLogger;
-var init_vite = __esm({
-  "server/vite.ts"() {
-    "use strict";
-    init_vite_config();
-    __filename2 = fileURLToPath2(import.meta.url);
-    __dirname2 = dirname(__filename2);
-    viteLogger = createLogger();
-  }
-});
-
-// server/index.ts
-import express2 from "express";
 
 // server/routes.ts
 import { createServer } from "http";
@@ -316,10 +189,12 @@ async function registerRoutes(app2) {
   return httpServer;
 }
 
-// server/index.ts
+// server/production.ts
 import helmet from "helmet";
 import cors from "cors";
-function log2(message, source = "express") {
+import path from "path";
+import fs from "fs";
+function log(message, source = "express") {
   const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
@@ -328,7 +203,7 @@ function log2(message, source = "express") {
   });
   console.log(`${formattedTime} [${source}] ${message}`);
 }
-var app = express2();
+var app = express();
 app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === "production" ? void 0 : false
 }));
@@ -339,11 +214,11 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.use(express2.json());
-app.use(express2.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use((req, res, next) => {
   const start = Date.now();
-  const path3 = req.path;
+  const reqPath = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -352,15 +227,15 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path3.startsWith("/api")) {
-      let logLine = `${req.method} ${path3} ${res.statusCode} in ${duration}ms`;
+    if (reqPath.startsWith("/api")) {
+      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse && process.env.NODE_ENV !== "production") {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "\u2026";
       }
-      log2(logLine);
+      log(logLine);
     }
   });
   next();
@@ -380,29 +255,22 @@ app.use((req, res, next) => {
       stack: err.stack
     });
   });
-  if (app.get("env") === "development") {
-    const { setupVite: setupVite2 } = await Promise.resolve().then(() => (init_vite(), vite_exports));
-    await setupVite2(app, server);
+  const distPath = path.resolve(process.cwd(), "dist");
+  if (!fs.existsSync(distPath)) {
+    log(`Warning: Could not find build directory: ${distPath}`);
+    log("Static files will not be served. Make sure to build the client first.");
   } else {
-    const path3 = await import("path");
-    const fs2 = await import("fs");
-    const distPath = path3.resolve(process.cwd(), "dist");
-    if (!fs2.existsSync(distPath)) {
-      log2(`Warning: Could not find build directory: ${distPath}`);
-      log2("Static files will not be served. Make sure to build the client first.");
-    } else {
-      app.use(express2.static(distPath));
-      app.use("*", (_req, res) => {
-        res.sendFile(path3.resolve(distPath, "index.html"));
-      });
-      log2("Serving static files from dist directory");
-    }
+    app.use(express.static(distPath));
+    app.use("*", (_req, res) => {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
+    log("Serving static files from dist directory");
   }
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3e3;
   server.listen({
     port,
     host: "0.0.0.0"
   }, () => {
-    log2(`serving on port ${port}`);
+    log(`serving on port ${port}`);
   });
 })();
