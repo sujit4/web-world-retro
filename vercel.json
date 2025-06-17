@@ -36,7 +36,7 @@
   "github": {
     "enabled": true,
     "silent": false,
-    "autoAlias": true,
+    "autoAlias": false,
     "autoJobCancelation": true
   }
 } 
