@@ -44,7 +44,10 @@ async function build() {
   // Build the frontend
   log('Building frontend with Vite...', colors.yellow);
   if (!execute('npx vite build')) {
-    process.exit(1);
+    log('Vite build failed, trying with --force-rebuild flag...', colors.yellow);
+    if (!execute('npx vite build --force')) {
+      process.exit(1);
+    }
   }
 
   // Build the backend
