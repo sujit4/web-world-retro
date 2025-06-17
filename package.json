@@ -7,7 +7,7 @@
     "dev": "tsx server/index.ts",
     "prebuild": "npm install",
     "build": "node build.js",
-    "vercel-build": "rm -rf node_modules package-lock.json && npm install && npm run build",
+    "vercel-build": "rm -rf node_modules package-lock.json && npm install --include=optional && npm run build",
     "start": "NODE_ENV=production node api/index.js",
     "check": "tsc --noEmit",
     "db:push": "drizzle-kit push"
