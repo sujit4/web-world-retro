@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server/index.ts",
     "build": "node build.js",
-    "vercel-build": "npm ci --include=optional && npm run build",
+    "vercel-build": "rm -rf node_modules package-lock.json && npm i && npm run build",
     "start": "NODE_ENV=production node api/index.js",
     "check": "tsc --noEmit",
     "db:push": "drizzle-kit push"
