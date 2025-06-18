@@ -52,7 +52,7 @@ async function build() {
 
   // Build the backend
   log('Building backend with esbuild...', colors.yellow);
-  if (!execute('npx esbuild server/index.ts --platform=node --packages=external --external:vite --external:@vitejs/plugin-react --bundle --format=esm --outdir=api')) {
+  if (!execute('npx esbuild server/production.ts --platform=node --packages=external --bundle --format=esm --outdir=api')) {
     process.exit(1);
   }
 

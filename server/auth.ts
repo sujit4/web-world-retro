@@ -1,7 +1,12 @@
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 // Number of salt rounds for bcrypt
 const SALT_ROUNDS = 10;
+
+// JWT configuration
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-for-development-only';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 /**
  * Hash a password using bcrypt
@@ -20,4 +25,38 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
-} 
+}
+
+/**
+ * Generate a JWT token for a user
+ * @param userId User ID
+ * @param username Username
+ * @returns JWT token
+ */
+export function generateToken(userId: number, username: string): string {
+  return jwt.sign(
+    { userId, username },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
+  );
+}
+
+/**
+ * Verify and decode a JWT token
+ * @param token JWT token to verify
+ * @returns Decoded token payload or null if invalid
+ */
+export function verifyToken(token: string): { userId: number; username: string } | null {
+  try {
+    console.log('JWT Verify - Token length:', token.length);
+    console.log('JWT Verify - JWT_SECRET exists:', !!JWT_SECRET);
+    console.log('JWT Verify - JWT_SECRET length:', JWT_SECRET.length);
+    
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
+    console.log('JWT Verify - Success:', decoded);
+    return decoded;
+  } catch (error) {
+    console.error('JWT Verify - Error:', error);
+    return null;
+  }
+}

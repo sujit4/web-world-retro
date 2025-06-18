@@ -2,9 +2,10 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import helmet from "helmet";
 import cors from "cors";
-import cookieParser from "cookie-parser";
+import path from "path";
+import fs from "fs";
 
-// Simple log function to avoid importing vite module
+// Simple log function
 function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -32,11 +33,10 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
+  const reqPath = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
@@ -47,8 +47,8 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (reqPath.startsWith("/api")) {
+      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse && process.env.NODE_ENV !== 'production') {
         // Only log response bodies in non-production environments
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
@@ -88,28 +88,17 @@ app.use((req, res, next) => {
     });
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    const { setupVite } = await import("./vite");
-    await setupVite(app, server);
+  // Serve static files in production without importing Vite
+  const distPath = path.resolve(process.cwd(), "dist");
+  if (!fs.existsSync(distPath)) {
+    log(`Warning: Could not find build directory: ${distPath}`);
+    log("Static files will not be served. Make sure to build the client first.");
   } else {
-    // Serve static files in production without importing Vite
-    const path = await import("path");
-    const fs = await import("fs");
-    
-    const distPath = path.resolve(process.cwd(), "dist");
-    if (!fs.existsSync(distPath)) {
-      log(`Warning: Could not find build directory: ${distPath}`);
-      log("Static files will not be served. Make sure to build the client first.");
-    } else {
-      app.use(express.static(distPath));
-      app.use("*", (_req: Request, res: Response) => {
-        res.sendFile(path.resolve(distPath, "index.html"));
-      });
-      log("Serving static files from dist directory");
-    }
+    app.use(express.static(distPath));
+    app.use("*", (_req: Request, res: Response) => {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
+    log("Serving static files from dist directory");
   }
 
   // Use port from environment variable or default to 3000
