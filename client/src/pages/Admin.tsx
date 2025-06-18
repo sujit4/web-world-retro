@@ -66,6 +66,34 @@ export default function Admin() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        setIsAuthenticated(false);
+        toast({
+          title: "Logged out successfully",
+          description: "You have been logged out",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Logout failed",
+          description: "An error occurred while logging out",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <main className="w-full max-w-lg mx-auto space-y-12">
@@ -96,13 +124,20 @@ export default function Admin() {
             </p>
             <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
               {Array.from({ length: 9 }).map((_, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className="aspect-square bg-primary/20 animate-pulse"
                   style={{ animationDelay: `${i * 0.1}s` }}
                 />
               ))}
             </div>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="mt-8 pixel-border text-xs"
+            >
+              LOGOUT
+            </Button>
           </div>
         ) : (
           <form onSubmit={handleLogin} className="space-y-4 max-w-xs mx-auto">
