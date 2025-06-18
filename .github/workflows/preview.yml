@@ -1,16 +1,11 @@
-name: Deploy to Production
+name: Deploy to Preview
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    types: [closed]
-    branches: [main]
+    branches-ignore: [main]
 
 jobs:
   deploy:
-    # Only run on main branch or when PR is merged to main
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     
     steps:
@@ -29,24 +24,25 @@ jobs:
       - name: Run tests
         run: npm test || echo "No tests found or tests failed, continuing deployment"
         
-      - name: Deploy to Vercel
+      - name: Deploy to Vercel Preview
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
           working-directory: ./
         env:
-          NODE_ENV: production
+          NODE_ENV: development
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           
-      - name: Deployment Status
+      - name: Preview Deployment Status
         if: always()
         run: |
           if [ ${{ job.status }} == 'success' ]; then
-            echo "✅ Deployment to production successful!"
+            echo "✅ Deployment to preview successful!"
+            echo "Preview URL will be available in the Vercel dashboard"
           else
-            echo "❌ Deployment to production failed!"
-          fi 
+            echo "❌ Deployment to preview failed!"
+          fi
