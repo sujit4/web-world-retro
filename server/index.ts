@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import helmet from "helmet";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 // Simple log function to avoid importing vite module
 function log(message: string, source = "express") {
@@ -31,6 +32,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   const start = Date.now();

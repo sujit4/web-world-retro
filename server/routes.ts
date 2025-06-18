@@ -3,19 +3,19 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema } from "@shared/schema";
 import { ZodError } from "zod";
-import session from "express-session";
-import MemoryStore from "memorystore";
+import { generateToken, verifyToken } from "./auth";
 
-// Extend the session type to include our custom properties
-declare module 'express-session' {
-  interface SessionData {
-    userId: number;
-    username: string;
+// Extend the Request type to include our custom properties
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        userId: number;
+        username: string;
+      };
+    }
   }
 }
-
-// Create a memory store for sessions
-const SessionStore = MemoryStore(session);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add a health check endpoint
@@ -23,23 +23,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Set up session middleware
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || "super-secret-key-for-development-only",
-      resave: false,
-      saveUninitialized: false,
-      store: new SessionStore({
-        checkPeriod: 86400000 // prune expired entries every 24h
-      }),
-      cookie: {
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax', // Required for cross-site cookies in production
-        httpOnly: true, // Prevent client-side JavaScript from accessing cookies
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-      }
-    })
-  );
+  // JWT Authentication middleware
+  const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies?.['auth-token'];
+    
+    if (!token) {
+      return next(); // Continue without authentication for public routes
+    }
+
+    const decoded = verifyToken(token);
+    if (decoded) {
+      req.user = decoded;
+    }
+    
+    next();
+  };
+
+  // Apply JWT middleware to all routes
+  app.use(authenticateToken);
 
   // Rate limiting for auth endpoints
   const authRateLimit = (windowMs: number, max: number) => {
@@ -123,11 +124,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       
-      // Set user in session
-      if (req.session) {
-        req.session.userId = user.id;
-        req.session.username = user.username;
-      }
+      // Generate JWT token
+      const token = generateToken(user.id, user.username);
+      
+      // Set HTTP-only cookie with JWT token
+      res.cookie('auth-token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      });
       
       // Return the user without the password
       const { password: _, ...userWithoutPassword } = user;
@@ -140,10 +146,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Check if user is authenticated
   app.get('/api/auth/check', (req: Request, res: Response) => {
-    if (req.session && req.session.userId) {
-      return res.status(200).json({ 
+    if (req.user) {
+      return res.status(200).json({
         authenticated: true,
-        username: req.session.username
+        username: req.user.username
       });
     }
     return res.status(401).json({ authenticated: false });
@@ -151,18 +157,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Logout endpoint
   app.post('/api/auth/logout', (req: Request, res: Response) => {
-    if (req.session) {
-      req.session.destroy((err) => {
-        if (err) {
-          console.error('Logout error:', err);
-          return res.status(500).json({ message: 'Failed to logout' });
-        }
-        res.clearCookie('connect.sid');
-        return res.status(200).json({ message: 'Logged out successfully' });
-      });
-    } else {
-      return res.status(200).json({ message: 'Already logged out' });
-    }
+    // Clear the JWT cookie
+    res.clearCookie('auth-token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    });
+    
+    return res.status(200).json({ message: 'Logged out successfully' });
   });
 
   // use storage to perform CRUD operations on the storage interface
