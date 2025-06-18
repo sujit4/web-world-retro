@@ -48,9 +48,15 @@ export function generateToken(userId: number, username: string): string {
  */
 export function verifyToken(token: string): { userId: number; username: string } | null {
   try {
+    console.log('JWT Verify - Token length:', token.length);
+    console.log('JWT Verify - JWT_SECRET exists:', !!JWT_SECRET);
+    console.log('JWT Verify - JWT_SECRET length:', JWT_SECRET.length);
+    
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
+    console.log('JWT Verify - Success:', decoded);
     return decoded;
   } catch (error) {
+    console.error('JWT Verify - Error:', error);
     return null;
   }
 }

@@ -25,15 +25,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // JWT Authentication middleware
   const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+    console.log('JWT Auth Middleware - Path:', req.path);
+    console.log('JWT Auth Middleware - Cookies:', req.cookies);
+    
     const token = req.cookies?.['auth-token'];
+    console.log('JWT Auth Middleware - Token exists:', !!token);
     
     if (!token) {
+      console.log('JWT Auth Middleware - No token found, continuing without auth');
       return next(); // Continue without authentication for public routes
     }
 
+    console.log('JWT Auth Middleware - Attempting to verify token');
     const decoded = verifyToken(token);
+    console.log('JWT Auth Middleware - Token verification result:', decoded);
+    
     if (decoded) {
       req.user = decoded;
+      console.log('JWT Auth Middleware - User set:', req.user);
+    } else {
+      console.log('JWT Auth Middleware - Token verification failed');
     }
     
     next();
