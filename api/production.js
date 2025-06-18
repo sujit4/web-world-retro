@@ -4,6 +4,20 @@ import express from "express";
 // server/routes.ts
 import { createServer } from "http";
 
+// shared/schema.ts
+import { pgTable, text, serial } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+var users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  // Passwords are hashed using bcrypt before storage
+  password: text("password").notNull()
+});
+var insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true
+});
+
 // server/auth.ts
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -38,55 +52,62 @@ function verifyToken(token) {
 }
 
 // server/storage.ts
-var MemStorage = class {
-  users;
-  currentId;
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { Pool } from "@neondatabase/serverless";
+import { eq } from "drizzle-orm";
+var PostgresStorage = class {
+  db;
   constructor() {
-    this.users = /* @__PURE__ */ new Map();
-    this.currentId = 1;
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL environment variable is required");
+    }
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    this.db = drizzle(pool);
   }
   async getUser(id) {
-    return this.users.get(id);
+    try {
+      const result = await this.db.select().from(users).where(eq(users.id, id)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("Error getting user by id:", error);
+      return void 0;
+    }
   }
   async getUserByUsername(username) {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
+    try {
+      const result = await this.db.select().from(users).where(eq(users.username, username)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error("Error getting user by username:", error);
+      return void 0;
+    }
   }
   async createUser(insertUser) {
-    const id = this.currentId++;
-    const hashedPassword = await hashPassword(insertUser.password);
-    const user = {
-      ...insertUser,
-      id,
-      password: hashedPassword
-      // Store the hashed password
-    };
-    this.users.set(id, user);
-    return user;
+    try {
+      const hashedPassword = await hashPassword(insertUser.password);
+      const result = await this.db.insert(users).values({
+        username: insertUser.username,
+        password: hashedPassword
+      }).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw new Error("Failed to create user");
+    }
   }
   async validateUserCredentials(username, password) {
-    const user = await this.getUserByUsername(username);
-    if (!user) return void 0;
-    const isValid = await verifyPassword(password, user.password);
-    return isValid ? user : void 0;
+    try {
+      const user = await this.getUserByUsername(username);
+      if (!user) return void 0;
+      const isValid = await verifyPassword(password, user.password);
+      return isValid ? user : void 0;
+    } catch (error) {
+      console.error("Error validating user credentials:", error);
+      return void 0;
+    }
   }
 };
-var storage = new MemStorage();
-
-// shared/schema.ts
-import { pgTable, text, serial } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-var users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  // Passwords are hashed using bcrypt before storage
-  password: text("password").notNull()
-});
-var insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true
-});
+var storage = new PostgresStorage();
 
 // server/routes.ts
 import { ZodError } from "zod";
