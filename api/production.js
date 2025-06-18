@@ -6,12 +6,35 @@ import { createServer } from "http";
 
 // server/auth.ts
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 var SALT_ROUNDS = 10;
+var JWT_SECRET = process.env.JWT_SECRET || "super-secret-jwt-key-for-development-only";
+var JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "24h";
 async function hashPassword(password) {
   return bcrypt.hash(password, SALT_ROUNDS);
 }
 async function verifyPassword(password, hash) {
   return bcrypt.compare(password, hash);
+}
+function generateToken(userId, username) {
+  return jwt.sign(
+    { userId, username },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+function verifyToken(token) {
+  try {
+    console.log("JWT Verify - Token length:", token.length);
+    console.log("JWT Verify - JWT_SECRET exists:", !!JWT_SECRET);
+    console.log("JWT Verify - JWT_SECRET length:", JWT_SECRET.length);
+    const decoded = jwt.verify(token, JWT_SECRET);
+    console.log("JWT Verify - Success:", decoded);
+    return decoded;
+  } catch (error) {
+    console.error("JWT Verify - Error:", error);
+    return null;
+  }
 }
 
 // server/storage.ts
@@ -67,34 +90,31 @@ var insertUserSchema = createInsertSchema(users).pick({
 
 // server/routes.ts
 import { ZodError } from "zod";
-import session from "express-session";
-import MemoryStore from "memorystore";
-var SessionStore = MemoryStore(session);
 async function registerRoutes(app2) {
   app2.get("/api/health", (_req, res) => {
     res.status(200).json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
   });
-  app2.use(
-    session({
-      secret: process.env.SESSION_SECRET || "super-secret-key-for-development-only",
-      resave: false,
-      saveUninitialized: false,
-      store: new SessionStore({
-        checkPeriod: 864e5
-        // prune expired entries every 24h
-      }),
-      cookie: {
-        secure: process.env.NODE_ENV === "production",
-        // Use secure cookies in production
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        // Required for cross-site cookies in production
-        httpOnly: true,
-        // Prevent client-side JavaScript from accessing cookies
-        maxAge: 24 * 60 * 60 * 1e3
-        // 24 hours
-      }
-    })
-  );
+  const authenticateToken = (req, res, next) => {
+    console.log("JWT Auth Middleware - Path:", req.path);
+    console.log("JWT Auth Middleware - Cookies:", req.cookies);
+    const token = req.cookies?.["auth-token"];
+    console.log("JWT Auth Middleware - Token exists:", !!token);
+    if (!token) {
+      console.log("JWT Auth Middleware - No token found, continuing without auth");
+      return next();
+    }
+    console.log("JWT Auth Middleware - Attempting to verify token");
+    const decoded = verifyToken(token);
+    console.log("JWT Auth Middleware - Token verification result:", decoded);
+    if (decoded) {
+      req.user = decoded;
+      console.log("JWT Auth Middleware - User set:", req.user);
+    } else {
+      console.log("JWT Auth Middleware - Token verification failed");
+    }
+    next();
+  };
+  app2.use(authenticateToken);
   const authRateLimit = (windowMs, max) => {
     const ips = /* @__PURE__ */ new Map();
     return (req, res, next) => {
@@ -151,10 +171,14 @@ async function registerRoutes(app2) {
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      if (req.session) {
-        req.session.userId = user.id;
-        req.session.username = user.username;
-      }
+      const token = generateToken(user.id, user.username);
+      res.cookie("auth-token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 24 * 60 * 60 * 1e3
+        // 24 hours
+      });
       const { password: _, ...userWithoutPassword } = user;
       return res.status(200).json(userWithoutPassword);
     } catch (error) {
@@ -163,27 +187,21 @@ async function registerRoutes(app2) {
     }
   });
   app2.get("/api/auth/check", (req, res) => {
-    if (req.session && req.session.userId) {
+    if (req.user) {
       return res.status(200).json({
         authenticated: true,
-        username: req.session.username
+        username: req.user.username
       });
     }
     return res.status(401).json({ authenticated: false });
   });
   app2.post("/api/auth/logout", (req, res) => {
-    if (req.session) {
-      req.session.destroy((err) => {
-        if (err) {
-          console.error("Logout error:", err);
-          return res.status(500).json({ message: "Failed to logout" });
-        }
-        res.clearCookie("connect.sid");
-        return res.status(200).json({ message: "Logged out successfully" });
-      });
-    } else {
-      return res.status(200).json({ message: "Already logged out" });
-    }
+    res.clearCookie("auth-token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+    });
+    return res.status(200).json({ message: "Logged out successfully" });
   });
   const httpServer = createServer(app2);
   return httpServer;
@@ -194,6 +212,7 @@ import helmet from "helmet";
 import cors from "cors";
 import path from "path";
 import fs from "fs";
+import cookieParser from "cookie-parser";
 function log(message, source = "express") {
   const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -207,8 +226,17 @@ var app = express();
 app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === "production" ? void 0 : false
 }));
+var getCorsOrigin = () => {
+  if (process.env.CORS_ORIGIN) {
+    return process.env.CORS_ORIGIN;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+};
 app.use(cors({
-  origin: process.env.VERCEL_URL || process.env.CORS_ORIGIN || "http://localhost:3000",
+  origin: getCorsOrigin(),
   credentials: true,
   // Important for cookies/auth
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -216,6 +244,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 app.use((req, res, next) => {
   const start = Date.now();
   const reqPath = req.path;

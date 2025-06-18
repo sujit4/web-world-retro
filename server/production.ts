@@ -24,8 +24,23 @@ app.use(helmet({
 }));
 
 // Add CORS support
+const getCorsOrigin = () => {
+  // Prioritize explicitly set CORS_ORIGIN
+  if (process.env.CORS_ORIGIN) {
+    return process.env.CORS_ORIGIN;
+  }
+  
+  // Fall back to VERCEL_URL with https:// prefix
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // Default for local development
+  return 'http://localhost:3000';
+};
+
 app.use(cors({
-  origin: process.env.VERCEL_URL || process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: getCorsOrigin(),
   credentials: true, // Important for cookies/auth
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -33,6 +48,10 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add cookie parser for JWT authentication
+import cookieParser from "cookie-parser";
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   const start = Date.now();
